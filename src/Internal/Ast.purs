@@ -1,4 +1,4 @@
-module Ast where
+module Internal.Ast where
 
 import Prelude
 import Data.Maybe

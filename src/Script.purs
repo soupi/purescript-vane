@@ -1,14 +1,51 @@
-module Script where
+module Script
+  (Script
+  ,Scene
+  ,Command
+  ,Placement
+  ,Fade
+  ,Option
+  ,PF
+  ,pf
+  ,defaultPF
+  ,center
+  ,left
+  ,fadeOut
+  ,fadeIn
+  ,noFade
+  ,choice
+  ,wait
+  ,text
+  ,quote
+  ,art
+  ,background
+  ,sprite
+  ,clearArt
+  ,playSound
+  ,playMusic
+  ,pauseMusic
+  ,resumeMusic
+  ,switchMusic
+  )
+where
 
 import Prelude
 import Data.Maybe
 import Control.Monad.Free
 
-import Ast
+-- import Internal.Ast
+import Internal.Ast as Ast
 
 -----------
 -- Utils --
 -----------
+
+type Script a = Ast.Script a
+type Scene a = Ast.Scene a
+type Command = Ast.Command
+type Placement = Ast.Placement
+type Fade = Ast.Fade
+type Option = Ast.Option
 
 type PF =
   { place :: Placement
@@ -21,28 +58,28 @@ pf p f =
 
 defaultPF :: PF
 defaultPF =
-  { place: Center, fade: Nothing }
+  { place: Ast.Center, fade: Nothing }
 
 center :: Placement
-center = Center
+center = Ast.Center
 
 left :: Placement
-left = LeftSide
+left = Ast.LeftSide
 
 right :: Placement
-right = RightSide
+right = Ast.RightSide
 
 fadeOut :: Maybe Fade
-fadeOut = Just FadeOut
+fadeOut = Just Ast.FadeOut
 
 fadeIn :: Maybe Fade
-fadeIn = Just FadeIn
+fadeIn = Just Ast.FadeIn
 
 noFade :: Maybe Fade
 noFade = Nothing
 
 cmd :: Command -> Script Command
-cmd x = liftF $ Command x x
+cmd x = liftF $ Ast.Command x x
 
 -----------
 -- Texts --
@@ -50,49 +87,49 @@ cmd x = liftF $ Command x x
 
 text :: String -> Script Command
 text txt =
-  cmd (Text (Texts txt))
+  cmd (Ast.Text (Ast.Texts txt))
 
 quote :: String -> String -> Script Command
 quote name txt =
-  cmd (Text (Quote name txt))
+  cmd (Ast.Text (Ast.Quote name txt))
 
 ---------
 -- Art --
 ---------
 
-bg :: String -> Script Command
-bg imgName =
-  cmd (Art (Display imgName) Background Nothing)
+background :: String -> Script Command
+background imgName =
+  cmd (Ast.Art (Ast.Display imgName) Ast.Background Nothing)
 
 art :: String -> PF -> Script Command
 art imgName pf =
-  cmd $ Art (Display imgName) pf.place pf.fade
+  cmd $ Ast.Art (Ast.Display imgName) pf.place pf.fade
 
 sprite :: String -> Script Command
 sprite imgName =
-  cmd $ Art (Display imgName) center Nothing
+  cmd $ Ast.Art (Ast.Display imgName) center Nothing
 
 clearArt :: Maybe Fade -> Script Command
-clearArt fade = cmd (Art Remove All fade)
+clearArt fade = cmd (Ast.Art Ast.Remove Ast.All fade)
 
 -----------
 -- Music --
 -----------
 
 playMusic :: String -> Maybe Fade -> Script Command
-playMusic music fade = cmd (Music (PlayMusic music) fade)
+playMusic music fade = cmd (Ast.Music (Ast.PlayMusic music) fade)
 
 playSound :: String -> Script Command
-playSound music = cmd (Music (PlaySound music) noFade)
+playSound music = cmd (Ast.Music (Ast.PlaySound music) noFade)
 
 pauseMusic :: Maybe Fade -> Script Command
-pauseMusic fade = cmd (Music Pause fade)
+pauseMusic fade = cmd (Ast.Music Ast.Pause fade)
 
 resumeMusic :: Maybe Fade -> Script Command
-resumeMusic fade = cmd (Music Resume fade)
+resumeMusic fade = cmd (Ast.Music Ast.Resume fade)
 
 fadeOutMusic :: Script Command
-fadeOutMusic = cmd (Music Pause fadeOut)
+fadeOutMusic = cmd (Ast.Music Ast.Pause fadeOut)
 
 switchMusic :: String -> Script Command
 switchMusic music = do
@@ -104,7 +141,7 @@ switchMusic music = do
 -----------
 
 wait :: Script Command
-wait = cmd WaitForKey
+wait = cmd Ast.WaitForKey
 
 choice :: String -> Array Option -> Script Command
-choice name opts = cmd (Choice name opts)
+choice name opts = cmd (Ast.Choice name opts)
