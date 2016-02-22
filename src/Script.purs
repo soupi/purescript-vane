@@ -26,6 +26,7 @@ module Script
   ,pauseMusic
   ,resumeMusic
   ,switchMusic
+  ,print
   )
 where
 
@@ -33,12 +34,12 @@ import Prelude
 import Data.Maybe
 import Control.Monad.Free
 
--- import Internal.Ast
-import Internal.Ast as Ast
+import Script.Internal.Ast as Ast
+import Script.Print as Print
 
------------
--- Utils --
------------
+----------------
+-- Re-exports --
+----------------
 
 type Script a = Ast.Script a
 type Scene a = Ast.Scene a
@@ -46,6 +47,12 @@ type Command = Ast.Command
 type Placement = Ast.Placement
 type Fade = Ast.Fade
 type Option = Ast.Option
+
+print = Print.print
+
+-----------
+-- Utils --
+-----------
 
 type PF =
   { place :: Placement

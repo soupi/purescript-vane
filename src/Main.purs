@@ -4,11 +4,12 @@ import Prelude
 import Control.Monad.Eff
 import Control.Monad.Eff.Console
 
-import Script
+import Script hiding (print)
+import Script as Script
 
 main :: forall e. Eff (console :: CONSOLE | e) Unit
 main = do
-  log "Hello vane!"
+  void $ Script.print script
 
 
 script :: Script Command

@@ -1,4 +1,4 @@
-module Internal.Ast where
+module Script.Internal.Ast where
 
 import Prelude
 import Data.Maybe
@@ -13,7 +13,9 @@ type Script a = Free CommandF a
 
 data CommandF r
   = Command Command r
-  | Done
+
+instance functorCommandF :: Functor CommandF where
+  map f (Command c r) = Command c (f r)
 
 data Command
   = Text  TextCommand
