@@ -1,6 +1,7 @@
 ### PureScript
 
 .browserify-cache.json
+.pulp-cache
 .psci
 .psci_modules
 output

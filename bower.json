@@ -16,6 +16,7 @@
   ],
   "dependencies": {
     "purescript-debug": "*",
+    "purescript-dom": "*",
     "purescript-console": "*",
     "purescript-free": "*",
     "purescript-strings": "*",
