@@ -1,6 +1,6 @@
 module Main where
 
-import Prelude (bind, const, ($), (<$>), Unit)
+import Prelude (bind, ($), (<$>), Unit)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (log, CONSOLE)
 import Control.Timer (TIMER)
@@ -15,8 +15,11 @@ import Input as Input
 main :: forall e. Eff (console :: CONSOLE, dom :: DOM, timer :: TIMER | e) Unit
 main = do
   inn <- Input.input
-  let game = S.foldp update [] inn
-  S.runSignal ((const $ log "hi") <$> game)
+  let game = S.foldp update initState inn
+  S.runSignal (view <$> game)
+
+view :: forall e. Input.Input -> Eff (console :: CONSOLE, dom :: DOM | e) Unit
+view input = log $ Input.showInput input
 
 script :: Script Command
 script = do
@@ -28,6 +31,8 @@ script = do
   quote "Protagonist" "But for now, good bye."
   clearArt fadeOut
 
-update :: Array Input.Input -> Array Input.Input -> Array Input.Input
+update :: Input.Input -> Input.Input -> Input.Input
 update x _ = x
 
+initState :: Input.Input
+initState = Input.initInput

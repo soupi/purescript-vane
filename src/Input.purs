@@ -5,49 +5,134 @@ import Control.Monad.Eff (Eff)
 import DOM (DOM)
 import Control.Timer (TIMER)
 import Data.Int (toNumber)
-import Data.Traversable (sequence)
-
-import Data.Array (catMaybes)
-import Data.Maybe (Maybe (Just, Nothing), isNothing)
 
 import Signal as S
+import Signal (Signal, foldp, sampleOn) as S
 import Signal.DOM (keyPressed, mouseButton, mousePos, animationFrame) as S
 
-import CanvasUtils (Point)
+import CanvasUtils (Point, makePoint)
+import Utils (Tuple(..))
 
-data Input
-  = Arrows (Array Arrow)
-  | MouseClick Point
-  | Tick
+type Input =
+  { arrows :: Arrows BtnAction
+  , mouse :: Mouse
+  }
 
-data Arrow
+type Arrows a =
+  { right :: a
+  , left  :: a
+  , down  :: a
+  , up    :: a
+  }
+
+data ArrowKey
   = LeftArrow
   | RightArrow
   | UpArrow
   | DownArrow
 
-input :: forall e. Eff (dom :: DOM, timer :: TIMER | e) (S.Signal (Array Input))
+data Mouse
+  = Mouse Point BtnAction
+
+data BtnAction
+  = BtnUp
+  | BtnDown
+  | BtnClick
+  | BtnUnClick
+
+instance showBtnAction :: Show BtnAction where
+  show BtnUp = "BtnUp"
+  show BtnDown = "BtnDown"
+  show BtnClick = "BtnClick"
+  show BtnUnClick = "BtnUnClick"
+
+instance showMouse :: Show Mouse where
+  show (Mouse p b) = "Mouse " ++ "(" ++ show p.x ++ ", " ++ show p.y ++ ") " ++ show b
+
+instance showArrowKey :: Show ArrowKey where
+  show UpArrow = "UpArrow"
+  show LeftArrow = "LeftArrow"
+  show DownArrow = "DownArrow"
+  show RightArrow = "RightArrow"
+
+showArrows :: Arrows BtnAction -> String
+showArrows arrows =
+  "Arrows "
+  <> show arrows.left
+  <> " "
+  <> show arrows.down
+  <> " "
+  <> show arrows.up
+  <> " "
+  <> show arrows.right
+
+showInput :: Input -> String
+showInput i = "Input\n  " ++ showArrows i.arrows ++ "\n  " ++ show i.mouse
+
+input :: forall e. Eff (dom :: DOM, timer :: TIMER | e) (S.Signal Input)
 input = do
   frames <- S.animationFrame
-  arrowsInputs <- arrows
-  mouse <- mouseClick
-  pure (sequence [arrowsInputs, mouse, map (const Tick) frames])
+  arrows <- arrowsSignal
+  mouse <- mouseSignal
+  let sig = S.sampleOn frames $
+        Tuple
+        <$> arrows
+        <*> mouse
+  pure $
+    S.foldp updateInput initInput sig
 
-mouseClick :: forall e. Eff (dom :: DOM | e) (S.Signal Input)
-mouseClick = do
-  pos  <- S.mousePos
-  down <- S.filter id false <<< S.dropRepeats <$> S.mouseButton 0
-  let sig = S.sampleOn down ((\p -> { x: toNumber p.x, y: toNumber p.y }) <$> pos)
-  pure $ map MouseClick sig
+initInput :: Input
+initInput =
+  { arrows:
+      { right: BtnUp
+      , left: BtnUp
+      , down: BtnUp
+      , up: BtnUp
+      }
+  , mouse: Mouse (makePoint 0.0 0.0) BtnUp
+  }
 
-arrows :: forall e. Eff (dom :: DOM | e) (S.Signal Input)
-arrows = do
-  leftInput  <- S.filter isNothing Nothing <<< map (\x -> if x then Just LeftArrow else Nothing)  <<< S.dropRepeats <$> S.keyPressed leftKeyCode
-  rightInput <- S.filter isNothing Nothing <<< map (\x -> if x then Just RightArrow else Nothing) <<< S.dropRepeats <$> S.keyPressed rightKeyCode
-  upInput    <- S.filter isNothing Nothing <<< map (\x -> if x then Just UpArrow else Nothing)    <<< S.dropRepeats <$> S.keyPressed upKeyCode
-  downInput  <- S.filter isNothing Nothing <<< map (\x -> if x then Just DownArrow else Nothing)  <<< S.dropRepeats <$> S.keyPressed downKeyCode
-  let arrs = sequence [leftInput, rightInput, downInput, upInput]
-  pure $ map (Arrows <<< catMaybes) arrs
+updateInput :: Tuple (Arrows Boolean) (Tuple Point Boolean) -> Input -> Input
+updateInput (Tuple arrI mouseI) state =
+  { arrows: arrFold arrI state.arrows
+  , mouse: mouseFold mouseI state.mouse
+  }
+
+mouseSignal :: forall e. Eff (dom :: DOM | e) (S.Signal (Tuple Point Boolean))
+mouseSignal = do
+  pos  <- map (\p -> { x: toNumber p.x, y: toNumber p.y }) <$> S.mousePos
+  down <- S.mouseButton 0
+  let sig = Tuple <$> pos <*> down
+  pure sig
+
+mouseFold :: Tuple Point Boolean -> Mouse -> Mouse
+mouseFold (Tuple pos newB) (Mouse _ bState) = Mouse pos (btnStateUpdate newB bState)
+
+arrFold :: Arrows Boolean -> Arrows BtnAction -> Arrows BtnAction
+arrFold inp arrows =
+  { right: btnStateUpdate inp.right arrows.right
+  , left: btnStateUpdate inp.left arrows.left
+  , down: btnStateUpdate inp.down arrows.down
+  , up: btnStateUpdate inp.up arrows.up
+  }
+
+btnStateUpdate :: Boolean -> BtnAction -> BtnAction
+btnStateUpdate false BtnDown = BtnUnClick
+btnStateUpdate false _       = BtnUp
+btnStateUpdate true  BtnUp   = BtnClick
+btnStateUpdate true  _       = BtnDown
+
+arrowsSignal :: forall e. Eff (dom :: DOM | e) (S.Signal (Arrows Boolean))
+arrowsSignal = do
+  rightArrow <- S.keyPressed rightKeyCode
+  leftArrow  <- S.keyPressed leftKeyCode
+  downArrow  <- S.keyPressed downKeyCode
+  upArrow    <- S.keyPressed upKeyCode
+  pure $ { left: _, right: _, down: _, up: _ }
+      <$>  leftArrow
+      <*>  rightArrow
+      <*>  downArrow
+      <*>  upArrow
 
 leftKeyCode :: Int
 leftKeyCode = 37
@@ -63,4 +148,3 @@ downKeyCode = 40
 
 asNum :: Boolean -> Number
 asNum b = if b then 1.0 else 0.0
-
