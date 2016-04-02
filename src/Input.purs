@@ -6,7 +6,6 @@ import DOM (DOM)
 import Control.Timer (TIMER)
 import Data.Int (toNumber)
 
-import Signal as S
 import Signal (Signal, foldp, sampleOn) as S
 import Signal.DOM (keyPressed, mouseButton, mousePos, animationFrame) as S
 
@@ -35,16 +34,16 @@ data Mouse
   = Mouse Point BtnAction
 
 data BtnAction
-  = BtnUp
-  | BtnDown
-  | BtnClick
-  | BtnUnClick
+  = Click
+  | Hold
+  | Idle
+  | Release
 
 instance showBtnAction :: Show BtnAction where
-  show BtnUp = "BtnUp"
-  show BtnDown = "BtnDown"
-  show BtnClick = "BtnClick"
-  show BtnUnClick = "BtnUnClick"
+  show Idle = "Idle"
+  show Hold = "Hold"
+  show Click = "Click"
+  show Release = "Release"
 
 instance showMouse :: Show Mouse where
   show (Mouse p b) = "Mouse " ++ "(" ++ show p.x ++ ", " ++ show p.y ++ ") " ++ show b
@@ -84,12 +83,12 @@ input = do
 initInput :: Input
 initInput =
   { arrows:
-      { right: BtnUp
-      , left: BtnUp
-      , down: BtnUp
-      , up: BtnUp
+      { right: Idle
+      , left: Idle
+      , down: Idle
+      , up: Idle
       }
-  , mouse: Mouse (makePoint 0.0 0.0) BtnUp
+  , mouse: Mouse (makePoint 0.0 0.0) Idle
   }
 
 updateInput :: Tuple (Arrows Boolean) (Tuple Point Boolean) -> Input -> Input
@@ -117,10 +116,10 @@ arrFold inp arrows =
   }
 
 btnStateUpdate :: Boolean -> BtnAction -> BtnAction
-btnStateUpdate false BtnDown = BtnUnClick
-btnStateUpdate false _       = BtnUp
-btnStateUpdate true  BtnUp   = BtnClick
-btnStateUpdate true  _       = BtnDown
+btnStateUpdate false Hold = Release
+btnStateUpdate false _    = Idle
+btnStateUpdate true  Idle = Click
+btnStateUpdate true  _    = Hold
 
 arrowsSignal :: forall e. Eff (dom :: DOM | e) (S.Signal (Arrows Boolean))
 arrowsSignal = do
