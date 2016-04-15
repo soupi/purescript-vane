@@ -1,4 +1,4 @@
-module Script.Internal.Ast where
+module Vane.Script.Internal.Ast where
 
 import Prelude
 import Data.Maybe

@@ -8,9 +8,9 @@ import DOM (DOM)
 
 import Signal (runSignal, foldp) as S
 
-import Script (Command, Script, fadeOut, clearArt, quote, sprite, text, background)
+import Vane.Script (Command, Script, fadeOut, clearArt, quote, sprite, text, background)
 
-import Input as Input
+import Vane.Input as Input
 
 main :: forall e. Eff (console :: CONSOLE, dom :: DOM, timer :: TIMER | e) Unit
 main = do

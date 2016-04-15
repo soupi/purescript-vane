@@ -1,6 +1,7 @@
-module Input where
+module Vane.Input where
 
 import Prelude
+import Data.Tuple (Tuple(..))
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
 import Control.Timer (TIMER)
@@ -9,8 +10,7 @@ import Data.Int (toNumber)
 import Signal (Signal, foldp, sampleOn) as S
 import Signal.DOM (keyPressed, mouseButton, mousePos, animationFrame) as S
 
-import CanvasUtils (Point, makePoint)
-import Utils (Tuple(..))
+import Vane.Graphics.CanvasUtils (Point, makePoint)
 
 type Input =
   { arrows :: Arrows BtnAction

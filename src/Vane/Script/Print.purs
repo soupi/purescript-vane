@@ -1,4 +1,4 @@
-module Script.Print (print) where
+module Vane.Script.Print (print) where
 
 import Prelude
 import Data.Maybe
@@ -7,7 +7,7 @@ import Control.Monad.Eff.Console
 import Control.Monad.Free
 import Data.NaturalTransformation
 
-import Script.Internal.Ast
+import Vane.Script.Internal.Ast
 
 
 evalPrint :: forall e. NaturalTransformation CommandF (Eff (console :: CONSOLE | e))

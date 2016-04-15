@@ -1,4 +1,4 @@
-module CanvasUtils where
+module Vane.Graphics.CanvasUtils where
 
 import Prelude
 

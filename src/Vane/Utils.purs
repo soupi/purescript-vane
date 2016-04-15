@@ -1,4 +1,4 @@
-module Utils where
+module Vane.Utils where
 
 import Data.Maybe
 import Prelude (Show, show, (<>))
@@ -12,4 +12,3 @@ maybeToArray :: forall a. Maybe a -> Array a
 maybeToArray Nothing  = []
 maybeToArray (Just x) = [x]
 
-data Tuple a b = Tuple a b

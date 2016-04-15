@@ -1,4 +1,4 @@
-module Script
+module Vane.Script
   (Script
   ,Scene
   ,Command
@@ -34,8 +34,8 @@ import Prelude
 import Data.Maybe
 import Control.Monad.Free
 
-import Script.Internal.Ast as Ast
-import Script.Print as Print
+import Vane.Script.Internal.Ast as Ast
+import Vane.Script.Print as Print
 
 ----------------
 -- Re-exports --
